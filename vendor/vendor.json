@@ -1,0 +1,31 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "xI6xEy3v7kDkYIvdazaQ5MqX7bI=",
+			"path": "github.com/goinggo/tracelog",
+			"revision": "5a27b49b2201ce974306101fce4d271b1e840e02",
+			"revisionTime": "2015-09-23T12:54:15Z"
+		},
+		{
+			"checksumSHA1": "qWSfv6nFxKXv9aIvOB/A+oJ47a8=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "4ac909741dfa57448bfadfdbca0cf7eeaa68f0e2",
+			"revisionTime": "2018-02-01T01:52:56Z"
+		},
+		{
+			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",
+			"path": "github.com/satori/go.uuid",
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"revisionTime": "2018-01-03T17:44:51Z"
+		},
+		{
+			"checksumSHA1": "z1jqX/kf16YO8Rd7bCtY+p4+TEs=",
+			"path": "github.com/ugorji/go/codec",
+			"revision": "16f09ef744fd4227190f626f14cfdefb14362b3b",
+			"revisionTime": "2018-02-24T12:56:51Z"
+		}
+	],
+	"rootPath": "github.com/packetzoom/PZConnect"
+}
