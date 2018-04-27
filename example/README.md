@@ -12,6 +12,7 @@ Register a callback function for receiving messages.
 //type GameMessage struct {
 //	SenderID      uint64
 //	DestinationID string
+//	Metadata      uint32
 //	Payload       []byte
 //}
 
@@ -27,8 +28,16 @@ pzconnect.RegisterReceieveMessageCallback(handleReceivedMessages)
 
 You will get a client ID when connection is established and reaady to use.
 ```
-func handleConnect(clientID uint64) {
-	fmt.Printf("client: %v just connected!", clientID)
+
+//type ConnectMessage struct {
+//	SenderID      uint64
+//	Metadata      uint32
+//	Payload       []byte
+//}
+
+func handleConnect(cm pzconnect.ConnectMessage) error {
+	fmt.Printf("client: %v just connected, with req: %v!", cm.SenderID, cm.Payload)
+	return nil
 }
 
 pzconnect.RegisterConnectCallback(handleConnect)

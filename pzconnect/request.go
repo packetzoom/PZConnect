@@ -13,7 +13,7 @@ func handleRequest(conn IConnection, message []byte) bool {
 
 	// parse the buf
 	msglength := len(message)
-	tracelog.Trace("pzconnect", "handleRequest", "got message from proxy with len: %d, message content: %s", msglength, string(message))
+	tracelog.Trace("pzconnect", "handleRequest", "message len: %d, message content: %s", msglength, string(message))
 	if msglength <= defaultMsgpackHeaderLen {
 		tracelog.Info("pzconnect", "handleRequest", "invalid msg length, so possible corruption in pzlib, ignore msg")
 		return false
@@ -60,8 +60,10 @@ func handleDispatchRequest(conn IConnection, req *pzMessage) bool {
 		}
 
 		receiveCallback(GameMessage{
-			SenderID: req.SenderID,
-			Payload:  req.payload,
+			SenderID:      req.SenderID,
+			Payload:       req.payload,
+			DestinationID: req.DestinationID,
+			Metadata:      req.Metadata,
 		})
 		return true
 	}
@@ -72,6 +74,8 @@ func handleDispatchRequest(conn IConnection, req *pzMessage) bool {
 func handleEventConnect(conn IConnection, req *pzMessage) {
 	tracelog.Info("pzconnect", "handleEventConnect", "Event handleEventConnect triggered")
 
+	connAsserted := conn.(*connection)
+	connAsserted.client.ClientID = req.SenderID
 	ok := clientsHub.ForceSet(req.SenderID, conn)
 	if !ok {
 		tracelog.Info("pzconnect", "NewConnection", "Some error storing connection in hub, closing it")
@@ -82,7 +86,11 @@ func handleEventConnect(conn IConnection, req *pzMessage) {
 	if connectCallback == nil {
 		tracelog.Info("pzconnect", "NewConnection", "no connect callback registered")
 	} else {
-		err := connectCallback(req.SenderID, conn.GetRequest())
+		err := connectCallback(ConnectMessage{
+			SenderID: req.SenderID,
+			Payload:  req.payload,
+			Metadata: req.Metadata,
+		})
 		if err != nil {
 			tracelog.Errorf(err, "pzconnect", "NewConnection", "connect callback rejected connection with error")
 			conn.SendClose(1000, "connection rejected")
@@ -94,10 +102,10 @@ func handleEventConnect(conn IConnection, req *pzMessage) {
 }
 
 func sendResponse(receiverID uint64, method eventType, gameServerID string, requestUUID uint64) bool {
-	tracelog.Trace("pzconnect", "sendResponse", "Target Client Id: %v", receiverID)
+	tracelog.Trace("pzconnect", "sendResponse", "Target Client Id: %#x", receiverID)
 	conn := clientsHub.Get(receiverID)
 	if conn == nil {
-		tracelog.Trace("pzconnect", "sendResponse", "receiver: %v is not available", receiverID)
+		tracelog.Trace("pzconnect", "sendResponse", "receiver: %#x is not available", receiverID)
 		return false
 	}
 
@@ -119,7 +127,7 @@ func sendResponse(receiverID uint64, method eventType, gameServerID string, requ
 		return false
 	}
 
-	buf, err := createBuf(messagePack, nil)
+	buf, err := prepareBuf(messagePack, nil)
 	if err != nil {
 		tracelog.Errorf(err, "pzconnect", "sendResponse", "binary.Write failed")
 		return false

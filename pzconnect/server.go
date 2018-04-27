@@ -1,7 +1,6 @@
 package pzconnect
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,7 +42,6 @@ func Start(port int, logLevel LogLevel) {
 	msgpackHandle.RawToString = true
 
 	// start the server
-	flag.Parse()
 	tracelog.Info("pzconnect", "start", "starting websocket server on port %d", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	log.Fatal("ListenAndServe: ", err)

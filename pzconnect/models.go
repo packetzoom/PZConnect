@@ -1,7 +1,5 @@
 package pzconnect
 
-import "net/http"
-
 const (
 	apiVersion = 1
 )
@@ -27,12 +25,12 @@ const (
 )
 
 // EventType defines the list of event types supported
-type reqStatus uint8
+type reqStatus uint16
 
 // Events exposed to game server
 const (
-	reqStatusFailure reqStatus = 0
-	reqStatusSuccess reqStatus = 1
+	reqStatusSuccess reqStatus = 0
+	reqStatusFailure reqStatus = 1
 )
 
 // pzMessage is the msgpack encoded incoming message
@@ -48,6 +46,7 @@ type pzMessage struct {
 	RequestUUID   uint64    `codec:"7"`
 	GameServerID  string    `codec:"8"`
 	Status        reqStatus `codec:"9"`
+	Metadata      uint32    `codec:"10"`
 	payload       []byte
 }
 
@@ -55,14 +54,22 @@ type pzMessage struct {
 type GameMessage struct {
 	SenderID      uint64
 	DestinationID string
+	Metadata      uint32
 	Payload       []byte
+}
+
+// ConnectMessage represents the connect method, passed to the game server
+type ConnectMessage struct {
+	SenderID uint64
+	Metadata uint32
+	Payload  []byte
 }
 
 // ReceiveHandlerFunc is a function that has a GameMessage as input
 type ReceiveHandlerFunc func(GameMessage)
 
-// ConnectHandlerFunc is a function that has a client id as input
-type ConnectHandlerFunc func(uint64, *http.Request) error
+// ConnectHandlerFunc is a function that has a ConnectMessage as input
+type ConnectHandlerFunc func(ConnectMessage) error
 
 // global callback variables
 var receiveCallback ReceiveHandlerFunc

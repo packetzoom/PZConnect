@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -28,21 +27,21 @@ func handleReceivedMessages(gm pzconnect.GameMessage) {
 	}
 }
 
-// handleConnect : gets called on new connections and prints client ID and req
-func handleConnect(clientID uint64, req *http.Request) error {
-	fmt.Printf("client: %v just connected, with req: %v!", clientID, req)
+// handleConnect : gets called on new connections
+func handleConnect(cm pzconnect.ConnectMessage) error {
+	fmt.Printf("client: %#x just connected, with req: %v!", cm.SenderID, cm.Payload)
 	return nil
 }
 
-func handleSend(gm pzconnect.GameMessage, payload payload) {
+func handleSend(gm pzconnect.GameMessage, message payload) {
 	// send message to intended receiptents
-	a := payload.Data.ReceiverIDs
+	a := message.Data.ReceiverIDs
 	b := make([]uint64, len(a))
 	for i, typedValue := range a {
 		value, err := strconv.ParseUint(typedValue, 10, 64)
 		if err != nil {
 			clientID := usernameClientMapRegistry.Get(typedValue)
-			fmt.Println("clientID: ", clientID)
+			fmt.Println("clientID: %#x", clientID)
 			if clientID != 0 {
 				value = clientID
 			}
@@ -51,12 +50,12 @@ func handleSend(gm pzconnect.GameMessage, payload payload) {
 	}
 
 	failedIDs := pzconnect.SendMessage(b, gm.Payload)
-	fmt.Printf("failed ids : %v\n", failedIDs)
+	fmt.Printf("failed ids : %#x\n", failedIDs)
 }
 
-func handleRegister(gm pzconnect.GameMessage, payload payload) {
+func handleRegister(gm pzconnect.GameMessage, request payload) {
 	// register the senderId
-	username := register(gm.SenderID, payload)
+	username := register(gm.SenderID, request)
 
 	// prepare list to all clients available
 	var senders []string
@@ -71,7 +70,7 @@ func handleRegister(gm pzconnect.GameMessage, payload payload) {
 	}
 
 	// prepare the response and broadcast
-	event := payload.Data.Event
+	event := request.Data.Event
 	registerResp := &registerMessage{
 		Sender: username,
 		Event:  event,
@@ -86,7 +85,7 @@ func handleRegister(gm pzconnect.GameMessage, payload payload) {
 
 	// also send the new name to current client
 	resp2, err := json.Marshal(registerResponse{
-		ID: payload.ID,
+		ID: request.ID,
 		Result: &map[string]interface{}{
 			"client_id": username,
 		},
@@ -97,7 +96,7 @@ func handleRegister(gm pzconnect.GameMessage, payload payload) {
 	}
 
 	failedIDs := pzconnect.SendMessage([]uint64{gm.SenderID}, resp2)
-	fmt.Printf("failed ids : %v\n", failedIDs)
+	fmt.Printf("failed ids : %#x\n", failedIDs)
 
 }
 

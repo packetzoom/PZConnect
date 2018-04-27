@@ -107,7 +107,7 @@ func (c *connection) Start() {
 
 func (c *connection) writer() {
 	defer func() {
-		tracelog.Info("pzconnect", "writer", "Writer stopped")
+		tracelog.Info("pzconnect", "writer", "Writer stopped %#x", c.client.ClientID)
 	}()
 
 	for {
@@ -135,16 +135,16 @@ func (c *connection) write(messageType int, payload []byte) error {
 }
 
 func (c *connection) reader() {
-	defer tracelog.Info("pzconnect", "reader", "Reader stopped")
+	defer tracelog.Info("pzconnect", "reader", "Reader stopped %#x", c.client.ClientID)
 	defer c.ws.Close()
 	defer close(c.quit)
 	defer func() {
-		tracelog.Info("pzconnect", "reader", "client id %d, shouldRemoveFromHub %d", c.client.ClientID, c.shouldRemoveFromHub)
+		tracelog.Info("pzconnect", "reader", "client id %#x, shouldRemoveFromHub %d", c.client.ClientID, c.shouldRemoveFromHub)
 		if c.shouldRemoveFromHub == true {
-			tracelog.Info("pzconnect", "reader", "deleting from hub %d", c.client.ClientID)
+			tracelog.Info("pzconnect", "reader", "deleting from hub %#x", c.client.ClientID)
 			clientsHub.Delete(c.client.ClientID)
 		} else {
-			tracelog.Info("pzconnect", "reader", "not deleting from hub, due to connection is an orphan")
+			tracelog.Info("pzconnect", "reader", "not deleting from hub, due to connection is an orphan %#x", c.client.ClientID)
 		}
 	}()
 
@@ -154,9 +154,9 @@ func (c *connection) reader() {
 			switch err.(type) {
 			case *websocket.CloseError:
 				closeErr := err.(*websocket.CloseError)
-				tracelog.Errorf(closeErr, "pzconnect", "reader", "Socket closed")
+				tracelog.Errorf(closeErr, "pzconnect", "reader", "Socket closed %#x", c.client.ClientID)
 			default:
-				tracelog.Errorf(err, "pzconnect", "reader", "Error in reader")
+				tracelog.Errorf(err, "pzconnect", "reader", "Error in reader %#x", c.client.ClientID)
 			}
 			return
 		}
@@ -166,8 +166,6 @@ func (c *connection) reader() {
 }
 
 func (c *connection) handleMessage(message []byte) {
-	tracelog.Info("pzconnect", "handleMessage", "got message")
-	tracelog.Trace("pzconnect", "handleMessage", "message %s", string(message))
-
+	tracelog.Info("pzconnect", "handleMessage", "got message from %#x", c.client.ClientID)
 	handleRequest(c, message)
 }

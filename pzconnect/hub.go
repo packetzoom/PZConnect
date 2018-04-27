@@ -45,12 +45,12 @@ func (h *hub) forceSet(clientID uint64, value IConnection) bool {
 	if !ok {
 		h.clients[clientID] = value
 	} else {
-		tracelog.Info("pzconnect", "reader", "force setting new connection: %d", clientID)
+		tracelog.Info("pzconnect", "reader", "force setting new connection: %#x", clientID)
 		conn := h.clients[clientID]
 
 		// TODO: not efficient solution, better assingn uniqueid to each connection and compare
 		if reflect.DeepEqual(conn, value) == true {
-			tracelog.Info("pzconnect", "reader", "same connection, so not overwriting. skipping!!! %d", clientID)
+			tracelog.Info("pzconnect", "reader", "same connection, so not overwriting. skipping!!! %#x", clientID)
 			return true
 		}
 
